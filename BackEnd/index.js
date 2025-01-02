@@ -34,7 +34,6 @@ app.get("/user/:username", async (req, res) => {
   const username = req.params.username;
 
   try {
-    // Check if the user exists in the database
     const checkUserQuery = `SELECT * FROM users WHERE username = ? AND is_deleted = FALSE`;
     db.query(checkUserQuery, [username], async (err, results) => {
       if (err) {
@@ -45,27 +44,36 @@ app.get("/user/:username", async (req, res) => {
       }
 
       if (results.length > 0) {
-        // If the user exists, return the data
         return res.status(200).send({
           message: "User exists in the database.",
-          status:200,
+          status: 200,
           data: results[0],
         });
       }
 
       try {
-        // If user does not exist, fetch from GitHub API
-        const response = await axios.get(
-          `https://api.github.com/users/${username}`
-        );
+        const response = await axios.get(`https://api.github.com/users/${username}`);
         const data = response.data;
 
-        // Prepare the data for insertion
         const insertQuery = `
-                    INSERT INTO users 
-                    (username, location, blog, bio, public_repos, public_gists, followers, following, created_at, updated_at, name, avatar, followers_url, following_url, repos_url) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                `;
+          INSERT INTO users 
+          (username, location, blog, bio, public_repos, public_gists, followers, following, created_at, updated_at, name, avatar, followers_Url, following_Url, repos_Url) 
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          ON DUPLICATE KEY UPDATE 
+            location = VALUES(location),
+            blog = VALUES(blog),
+            bio = VALUES(bio),
+            public_repos = VALUES(public_repos),
+            public_gists = VALUES(public_gists),
+            followers = VALUES(followers),
+            following = VALUES(following),
+            updated_at = VALUES(updated_at),
+            name = VALUES(name),
+            avatar = VALUES(avatar),
+            followers_Url = VALUES(followers_Url),
+            following_Url = VALUES(following_Url),
+            repos_Url = VALUES(repos_Url);
+        `;
         const values = [
           data.login,
           data.location || null,
@@ -84,7 +92,6 @@ app.get("/user/:username", async (req, res) => {
           data.repos_url,
         ];
 
-        // Insert the data into the database
         db.query(insertQuery, values, (err) => {
           if (err) {
             return res.status(500).send({
@@ -93,11 +100,9 @@ app.get("/user/:username", async (req, res) => {
             });
           }
 
-          // Return the same data we just fetched and saved
           res.status(201).send({
-            message:
-              "User data fetched from GitHub, saved, and retrieved successfully.",
-              status:201,
+            message: "User data fetched from GitHub, saved, and retrieved successfully.",
+            status: 201,
             data: {
               username: data.login,
               location: data.location || null,
@@ -131,6 +136,7 @@ app.get("/user/:username", async (req, res) => {
     });
   }
 });
+
 
 // Endpoint to get repositories of a user
 app.get("/repos/:username", async (req, res) => {

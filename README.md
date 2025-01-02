@@ -62,10 +62,15 @@ Frontend Routing
 This application uses React Router to handle routing between different pages.
 
 Routes
+
 / (Home): Displays the search page for repositories and users.
+
 /repos: Lists all repositories.
+
 /repos/:repoName: Displays detailed information for a specific repository.
+
 /followers: Displays a list of followers.
+
 
 Contributing
 Feel free to open issues or submit pull requests to enhance the project.

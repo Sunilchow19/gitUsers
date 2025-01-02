@@ -58,6 +58,7 @@ Features
 - Provides an API for querying users from the GitHub database.
   
 Frontend Routing
+
 This application uses React Router to handle routing between different pages.
 
 Routes
